@@ -68,10 +68,10 @@ def fast_convert(infile, language, model_type, output_folder):
     print(start_times)
     model = WhisperModel(model_type, device="cuda", compute_type="float16")
     if language=="自動判斷":
-        segments, info = model.transcribe(infile, beam_size=5)
+        segments, info = model.transcribe(infile, beam_size=5,vad_filter=True)
         print("偵測到的語言為 '%s'，概率為 %f" % (info.language, info.language_probability))
     else:
-        segments, info = model.transcribe(infile, beam_size=5, language=language)
+        segments, info = model.transcribe(infile, beam_size=5, language=language,vad_filter=True)
         print(f"選擇使用{language}來轉譯")
     # 這些代碼行創建並使用UTF-8編碼以寫模式打開三個不同的文件
     
