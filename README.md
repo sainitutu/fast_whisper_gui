@@ -1,5 +1,9 @@
 # fast_whisper_gui
-簡易使用fastWhisper的gui介面
+
+## 使用前需安裝
+- python(建議使用3.10.6)
+
+## 用法
 
 下載後，點擊 start.bat執行
 
