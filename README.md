@@ -1,0 +1,2 @@
+# fast_whisper_gui
+簡易使用fastWhisper的gui介面
