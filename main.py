@@ -17,7 +17,7 @@ def main():
         required=True,
         help="File to be converted",
         widget="FileChooser",
-        gooey_options=dict(wildcard="Video files (*.mp4, *.mkv,*.mp3,*.m4a)|*.mp4;*.mkv;*.mp3;*.m4a")
+        gooey_options=dict(wildcard="Video files (*.mp4, *.mkv,*.mp3,*.m4a,*.wav)|*.mp4;*.mkv;*.mp3;*.m4a;*.wav")
     )
     languages=["自動判斷","zh","en"]
     converter.add_argument(
@@ -39,15 +39,15 @@ def main():
         metavar="Model",
         help=f"選擇使用的模型: {', '.join(models)}"
     )
-    if_fast=["是","否"]
+    if_cuda=["是","否"]
     converter.add_argument(
-        "-f",
-        "--fast",
+        "-c",
+        "--cuda",
         required=True,
-        choices=if_fast,
-        default=if_fast[0],
-        metavar="fast",
-        help=f"是否使用加速: {', '.join(if_fast)}"
+        choices=if_cuda,
+        default=if_cuda[0],
+        metavar="cuda",
+        help=f"是否使用cuda顯卡: {', '.join(if_cuda)}"
     )
     converter.add_argument(
         "-o",
@@ -58,15 +58,15 @@ def main():
         widget="DirChooser"
     )
     args = parser.parse_args()
-    if(args.fast=="否"):
-        convert(args.input_file, args.language, args.model, args.output_folder)
-    else:
-        fast_convert(args.input_file, args.language, args.model, args.output_folder)
+    fast_convert(args.input_file, args.language, args.model, args.output_folder,args.cuda)
 
-def fast_convert(infile, language, model_type, output_folder):
+def fast_convert(infile, language, model_type, output_folder,cuda):
     start_times = datetime.datetime.now()  # 記錄程式開始執行時間
     print(start_times)
-    model = WhisperModel(model_type, device="cuda", compute_type="float16")
+    if cuda=="是":
+        model = WhisperModel(model_type, device="cuda", compute_type="float16")
+    else:
+        model = WhisperModel(model_type, device="cpu")
     if language=="自動判斷":
         segments, info = model.transcribe(infile, beam_size=5,vad_filter=True)
         print("偵測到的語言為 '%s'，概率為 %f" % (info.language, info.language_probability))
@@ -107,34 +107,12 @@ def fast_convert(infile, language, model_type, output_folder):
     end_times = datetime.datetime.now()  # 記錄程式結束執行時間
     print(end_times)
 
-    elapsed_time = end_times - start_times
+    # elapsed_time = end_times - start_times
 
     seconds = (end_times - start_times).seconds
     minutes = seconds // 60
     seconds = seconds-(minutes*60)
     print("程式執行所花費的時間： %d 分 %d 秒" % (minutes, seconds))  # 輸出總執行時間 
-
-def convert(infile, language, model_type, output_folder):
-    if not output_folder:
-        script_dir = os.path.dirname(os.path.abspath(__file__))  # 取得程式檔案所在目錄
-        output_folder = os.path.join(script_dir, 'out')          # 加入 'out' 子目錄
-        os.makedirs(output_folder, exist_ok=True)
-
-    cmd = [
-        "whisper",
-        infile,
-        "--language", language,
-        "--model", model_type,
-        "--device", "cuda",
-        "--output_dir", output_folder
-    ]
-    result = subprocess.run(cmd, shell=True)
-    
-    if result.returncode == 0:
-        print("轉換成功")
-    else: 
-        print("轉換失敗")
-
 
 if __name__ == '__main__':
     main()
